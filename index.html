@@ -77,6 +77,11 @@
     .upgrade-btn:hover {
       background: #e0a800;
     }
+    .upgrade-btn.locked {
+      background: #6c757d;
+      cursor: not-allowed;
+      color: #b0b0b0;
+    }
     .save-btn {
       margin: 5px;
       padding: 8px 16px;
@@ -131,12 +136,23 @@
     <p>Points: <span id="points">0</span></p>
     <button class="click-btn" onclick="clicker()">Click Me!</button>
     
-    <h3>Upgrades</h3>
+    <h3>Base Upgrades</h3>
     <button class="upgrade-btn" onclick="buyAutoClick()">Auto Clicker (<span id="autoCost">50</span> pts)</button>
     <button class="upgrade-btn" onclick="buyClickPower()">+1 Click Power (<span id="clickPowerCost">100</span> pts)</button>
     <button class="upgrade-btn" onclick="buyXPBoost()">+1 XP per click (<span id="xpBoostCost">150</span> pts)</button>
     
     <p>Auto Clickers: <span id="autoCount">0</span> | Click Power: <span id="clickPower">1</span> | XP Boost: <span id="xpBoost">1</span></p>
+
+    <h3>Level-Locked Upgrades</h3>
+    <button class="upgrade-btn" id="passiveXpBtn" onclick="buyPassiveXP()">
+      Passive XP Gain (<span id="passiveXpCost">250</span> pts)
+    </button>
+    
+    <button class="upgrade-btn" id="superClickBtn" onclick="buySuperClick()">
+      Super Clicker (<span id="superClickCost">1000</span> pts)
+    </button>
+
+    <p>Passive XP Ticks: <span id="passiveXpCount">0</span> | Super Clicks: <span id="superClickCount">0</span></p>
 
     <h3>Save/Load</h3>
     <div>
@@ -150,13 +166,19 @@
   </div>
 
   <footer>
-    &copy; 2025 CreamyPlaytime. All rights reserved.
+    © 2025 CreamyPlaytime. All rights reserved.
   </footer>
 
   <script>
     let points = 0, level = 1, xp = 0, xpNext = 10;
     let autoClickers = 0, clickPower = 1, xpBoost = 1;
     let autoCost = 50, clickPowerCost = 100, xpBoostCost = 150;
+    let superClickCount = 0, superClickCost = 1000, superClickPower = 10;
+    let passiveXpCount = 0, passiveXpCost = 250;
+    
+    // Define the level requirements for the new upgrades
+    const requiredLevelSuperClick = 5;
+    const requiredLevelPassiveXp = 3;
 
     const updateUI = () => {
       document.getElementById("points").textContent = points;
@@ -169,6 +191,35 @@
       document.getElementById("autoCost").textContent = autoCost;
       document.getElementById("clickPowerCost").textContent = clickPowerCost;
       document.getElementById("xpBoostCost").textContent = xpBoostCost;
+      
+      document.getElementById("superClickCount").textContent = superClickCount;
+      document.getElementById("passiveXpCount").textContent = passiveXpCount;
+
+      // Logic for Level-Locked Upgrades
+      const superClickBtn = document.getElementById("superClickBtn");
+      const passiveXpBtn = document.getElementById("passiveXpBtn");
+
+      // Check if the player is high enough level for the Passive XP upgrade
+      if (level >= requiredLevelPassiveXp) {
+        passiveXpBtn.textContent = `Passive XP Gain (${passiveXpCost} pts)`;
+        passiveXpBtn.classList.remove("locked");
+        passiveXpBtn.disabled = false;
+      } else {
+        passiveXpBtn.textContent = `Locked (Level ${requiredLevelPassiveXp})`;
+        passiveXpBtn.classList.add("locked");
+        passiveXpBtn.disabled = true;
+      }
+
+      // Check if the player is high enough level for the Super Clicker upgrade
+      if (level >= requiredLevelSuperClick) {
+        superClickBtn.textContent = `Super Clicker (${superClickCost} pts)`;
+        superClickBtn.classList.remove("locked");
+        superClickBtn.disabled = false;
+      } else {
+        superClickBtn.textContent = `Locked (Level ${requiredLevelSuperClick})`;
+        superClickBtn.classList.add("locked");
+        superClickBtn.disabled = true;
+      }
     };
 
     const gainXP = (amount) => {
@@ -213,8 +264,30 @@
       }
     };
 
+    const buySuperClick = () => {
+      // Check for both points AND the required level
+      if (points >= superClickCost && level >= requiredLevelSuperClick) {
+        points -= superClickCost;
+        superClickCount++;
+        clickPower += superClickPower;
+        superClickCost = Math.floor(superClickCost * 2);
+        updateUI();
+      }
+    };
+
+    const buyPassiveXP = () => {
+      // Check for both points AND the required level
+      if (points >= passiveXpCost && level >= requiredLevelPassiveXp) {
+        points -= passiveXpCost;
+        passiveXpCount++;
+        passiveXpCost = Math.floor(passiveXpCost * 1.6);
+        updateUI();
+      }
+    };
+
     setInterval(() => {
       points += autoClickers;
+      gainXP(passiveXpCount);
       updateUI();
     }, 1000);
 
@@ -222,7 +295,9 @@
       const saveData = {
         points, level, xp, xpNext,
         autoClickers, clickPower, xpBoost,
-        autoCost, clickPowerCost, xpBoostCost
+        autoCost, clickPowerCost, xpBoostCost,
+        superClickCount, superClickCost,
+        passiveXpCount, passiveXpCost
       };
       localStorage.setItem("clicker_slot" + slot, JSON.stringify(saveData));
       alert("Saved to slot " + slot);
@@ -242,6 +317,10 @@
         autoCost = save.autoCost;
         clickPowerCost = save.clickPowerCost;
         xpBoostCost = save.xpBoostCost;
+        superClickCount = save.superClickCount || 0;
+        superClickCost = save.superClickCost || 1000;
+        passiveXpCount = save.passiveXpCount || 0;
+        passiveXpCost = save.passiveXpCost || 250;
         updateUI();
         alert("Loaded slot " + slot);
       } else {
@@ -252,4 +331,4 @@
     updateUI(); // Initial draw
   </script>
 </body>
-</html>
+</html>
