@@ -1,0 +1,102 @@
+body {
+  background: #0e0e0e;
+  color: #f4f4f4;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  padding: 80px 20px;
+  margin: 0;
+}
+h1 {
+  font-size: 3em;
+  margin-bottom: 0.2em;
+}
+p {
+  font-size: 1.2em;
+  margin-bottom: 2em;
+}
+.button {
+  display: inline-block;
+  margin: 0.5em;
+  padding: 14px 28px;
+  background: #1e90ff;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+.button:hover {
+  background: #0056b3;
+}
+footer {
+  margin-top: 60px;
+  font-size: 0.9em;
+  color: #888;
+}
+.clicker-game {
+  margin-top: 60px;
+  padding: 20px;
+  border: 2px solid #444;
+  border-radius: 12px;
+  display: inline-block;
+  background: #1a1a1a;
+  max-width: 600px;
+  width: 100%;
+}
+.click-btn {
+  padding: 20px 40px;
+  font-size: 1.5em;
+  margin-top: 20px;
+  border: none;
+  border-radius: 10px;
+  background: #28a745;
+  color: white;
+  cursor: pointer;
+}
+.click-btn:hover {
+  background: #218838;
+}
+.upgrade-btn {
+  margin: 10px 10px;
+  padding: 10px 20px;
+  background: #ffc107;
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+.upgrade-btn:hover {
+  background: #e0a800;
+}
+.upgrade-btn.locked {
+  background: #6c757d;
+  cursor: not-allowed;
+  color: #b0b0b0;
+}
+.save-btn {
+  margin: 5px;
+  padding: 8px 16px;
+  background: #555;
+  color: #eee;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.save-btn:hover {
+  background: #777;
+}
+.about-section {
+  margin-top: 60px;
+  padding: 30px;
+  background: #1b1b1b;
+  border-radius: 12px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+iframe {
+  margin-top: 30px;
+  border-radius: 12px;
+  max-width: 100%;
+}
