@@ -5,6 +5,80 @@
   <title>CreamyPlaytime's Official Site</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* New styles for the XP bar */
+    .xp-bar-container {
+      width: 80%;
+      background: #444;
+      border-radius: 8px;
+      margin: 10px auto;
+      height: 20px;
+      overflow: hidden;
+    }
+    .xp-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #28a745, #44a775);
+      width: 0;
+      transition: width 0.5s ease-in-out;
+    }
+    /* Styles for the random event banner */
+    #eventBanner {
+        background: #e0a800;
+        color: black;
+        padding: 10px;
+        margin-top: 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        animation: pulse 1s infinite;
+        display: none;
+    }
+    #xpEventBanner {
+        background: #1e90ff;
+        color: white;
+        padding: 10px;
+        margin-top: 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        animation: pulse 1s infinite;
+        display: none;
+    }
+    #goldenClickBanner {
+        background: gold;
+        color: black;
+        padding: 10px;
+        margin-top: 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        animation: pulse 1s infinite;
+        display: none;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    .upgrade-btn.unaffordable {
+      background: #444;
+      color: #888;
+      cursor: not-allowed;
+    }
+    .upgrade-btn.locked {
+      background: #6c757d;
+      cursor: not-allowed;
+      color: #b0b0b0;
+    }
+    .click-text {
+      position: absolute;
+      font-size: 2em;
+      color: gold;
+      animation: flyUp 1s forwards;
+      pointer-events: none;
+    }
+    @keyframes flyUp {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(-50px); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
   <h1>Welcome to CreamyPlaytime.com</h1>
@@ -22,22 +96,41 @@
   </div>
   <div class="clicker-game">
     <h2>🔥 Creamy's Clicker Game</h2>
-    <p>Level: <span id="level">1</span> | XP: <span id="xp">0</span> / <span id="xpNext">10</span></p>
+    <p>Level: <span id="level">1</span></p>
+    <p>XP: <span id="xp">0</span> / <span id="xpNext">10</span></p>
+    <div class="xp-bar-container"><div class="xp-bar" id="xpBar"></div></div>
     <p>Points: <span id="points">0</span></p>
+    <div id="eventBanner"></div>
+    <div id="xpEventBanner"></div>
+    <div id="goldenClickBanner"></div>
     <button class="click-btn" onclick="clicker()">Click Me!</button>
     <h3>Base Upgrades</h3>
-    <button class="upgrade-btn" onclick="buyAutoClick()">Auto Clicker (<span id="autoCost">50</span> pts)</button>
-    <button class="upgrade-btn" onclick="buyClickPower()">+1 Click Power (<span id="clickPowerCost">100</span> pts)</button>
-    <button class="upgrade-btn" onclick="buyXPBoost()">+1 XP per click (<span id="xpBoostCost">150</span> pts)</button>
+    <button class="upgrade-btn" id="autoClickBtn" onclick="buyUpgrade('autoClick')">Auto Clicker (<span id="autoCost">50</span> pts)</button>
+    <button class="upgrade-btn" id="clickPowerBtn" onclick="buyUpgrade('clickPower')">+1 Click Power (<span id="clickPowerCost">100</span> pts)</button>
+    <button class="upgrade-btn" id="xpBoostBtn" onclick="buyUpgrade('xpBoost')">+1 XP per click (<span id="xpBoostCost">150</span> pts)</button>
     <p>Auto Clickers: <span id="autoCount">0</span> | Click Power: <span id="clickPower">1</span> | XP Boost: <span id="xpBoost">1</span></p>
     <h3>Level-Locked Upgrades</h3>
-    <button class="upgrade-btn" id="passiveXpBtn" onclick="buyPassiveXP()">
+    <button class="upgrade-btn" id="passiveXpBtn" onclick="buyUpgrade('passiveXp')">
       Passive XP Gain (<span id="passiveXpCost">250</span> pts)
     </button>
-    <button class="upgrade-btn" id="superClickBtn" onclick="buySuperClick()">
+    <button class="upgrade-btn" id="superClickBtn" onclick="buyUpgrade('superClick')">
       Super Clicker (<span id="superClickCost">1000</span> pts)
     </button>
-    <p>Passive XP Ticks: <span id="passiveXpCount">0</span> | Super Clicks: <span id="superClickCount">0</span></p>
+    <button class="upgrade-btn" id="critClickBtn" onclick="buyUpgrade('critClick')">
+      Critical Click Chance (<span id="critClickCost">500</span> pts)
+    </button>
+    <p>Passive XP Ticks: <span id="passiveXpCount">0</span> | Super Clicks: <span id="superClickCount">0</span> | Crit Chance: <span id="critChance">0</span>%</p>
+    <button class="upgrade-btn" id="discountBtn" onclick="buyUpgrade('discount')">
+      Upgrade Discount (<span id="discountCost">2000</span> pts)
+    </button>
+    <button class="upgrade-btn" id="multiplierBtn" onclick="buyUpgrade('multiplier')">
+      Point Multiplier (<span id="multiplierCost">5000</span> pts)
+    </button>
+    <p>Discount: <span id="discountCount">0</span> | Multiplier: x<span id="pointMultiplier">1.00</span></p>
+    <button class="upgrade-btn" id="goldenDetectorBtn" onclick="buyUpgrade('goldenDetector')">
+      Golden Detector (<span id="goldenDetectorCost">10000</span> pts)
+    </button>
+    <p>Golden Chance: <span id="goldenChance">0.10</span>%</p>
     <h3>Save/Load</h3>
     <div>
       <button class="save-btn" onclick="saveSlot(1)">Save Slot 1</button>
