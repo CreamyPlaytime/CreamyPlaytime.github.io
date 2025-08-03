@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -143,9 +142,18 @@
       <button class="save-btn" onclick="loadSlot(3)">Load Slot 3</button>
     </div>
   </div>
+  <div class="analytics-dashboard">
+    <h2>📊 Live Analytics Dashboard</h2>
+    <div class="stats">
+      <p>👥 Active Visitors: <span id="liveVisitors">0</span></p>
+      <p>🔁 Total Clicks: <span id="totalClicks">0</span></p>
+      <p>🌍 Top Referrer: <span id="topReferrer">Loading...</span></p>
+    </div>
+  </div>
   <footer>
     © 2025 CreamyPlaytime. All rights reserved.
   </footer>
   <script src="script.js"></script>
+  <script src="analytics.js"></script>
 </body>
 </html>
