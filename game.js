@@ -134,13 +134,14 @@ function initTouchControls() {
         });
     });
 }
-function onEscTouch(event) {
-    event.preventDefault();
-    isPlaying = false;
-    document.getElementById('info').style.display = 'block';
-    document.getElementById('touch-controls').style.display = 'none';
-    document.getElementById('hotbar').style.display = 'none';
-    document.getElementById('esc-btn').style.display = 'none'; // Corrected to hide the button
+function onEscTouch(event) {
+    event.preventDefault();
+    event.stopPropagation(); // Stops the event from affecting the parent container
+    isPlaying = false;
+    document.getElementById('info').style.display = 'block';
+    document.getElementById('touch-controls').style.display = 'none';
+    document.getElementById('hotbar').style.display = 'none';
+    document.getElementById('esc-btn').style.display = 'none';
 }
 function onTouchStart(event) {
     if (!isPlaying) {
