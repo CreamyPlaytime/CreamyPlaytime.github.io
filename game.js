@@ -354,33 +354,40 @@ function onMouseDown(event) {
         }
     }
 }
-function onKeyDown(event) {
-    switch (event.key.toLowerCase()) {
-        case 'w':
-            moveForward = true;
-            break;
-        case 's':
-            moveBackward = true;
-            break;
-        case 'a':
-            moveLeft = true;
-            break;
-        case 'd':
-            moveRight = true;
-            break;
-        case ' ':
-            if (canJump) {
-                velocity.y = jumpPower;
-                canJump = false;
-            }
-            break;
-        case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '0':
-            const index = event.key === '0' ? 9 : parseInt(event.key) - 1;
-            if (hotbarSlots[index]) {
-                selectBlock(hotbarSlots[index]);
-            }
-            break;
-    }
+function onKeyDown(event) {
+    // Add 'escape' to the switch statement
+    switch (event.key.toLowerCase()) {
+        case 'escape':
+            // If the controls are locked, unlock them
+            if (controls.isLocked) {
+                controls.unlock();
+            }
+            break;
+        case 'w':
+            moveForward = true;
+            break;
+        case 's':
+            moveBackward = true;
+            break;
+        case 'a':
+            moveLeft = true;
+            break;
+        case 'd':
+            moveRight = true;
+            break;
+        case ' ':
+            if (canJump) {
+                velocity.y = jumpPower;
+                canJump = false;
+            }
+            break;
+        case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '0':
+            const index = event.key === '0' ? 9 : parseInt(event.key) - 1;
+            if (hotbarSlots[index]) {
+                selectBlock(hotbarSlots[index]);
+            }
+            break;
+    }
 }
 function onKeyUp(event) {
     switch (event.key.toLowerCase()) {
