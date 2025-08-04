@@ -73,7 +73,7 @@ function init() {
         document.getElementById('touch-info').style.display = 'block';
         touchControlsElement.style.display = 'none'; // Hide initially
         hotbarElement.style.display = 'none'; // Hide initially
-        escBtnElement.style.display = 'block'; // Show ESC button on touch devices initially, but hide when playing
+        escBtnElement.style.display = 'none'; // Hide initially
         initTouchControls();
     } else {
         document.getElementById('mouse-info').style.display = 'block';
@@ -436,7 +436,7 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Re-center crosshair
+    // Re-center crosshair on window resize/orientation change
     const crosshair = document.getElementById('crosshair');
     if (crosshair) {
         crosshair.style.left = `${window.innerWidth / 2}px`;
