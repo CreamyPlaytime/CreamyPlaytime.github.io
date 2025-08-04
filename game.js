@@ -64,12 +64,16 @@ function init() {
 
     const infoElement = document.getElementById('info');
     const touchControlsElement = document.getElementById('touch-controls');
+    const escBtnElement = document.getElementById('esc-btn');
+    const hotbarElement = document.getElementById('hotbar');
 
     if (isTouchDevice) {
         infoElement.style.display = 'block'; // Show "Click to Play" equivalent
         document.getElementById('mouse-info').style.display = 'none';
         document.getElementById('touch-info').style.display = 'block';
-        touchControlsElement.style.display = 'flex';
+        touchControlsElement.style.display = 'none'; // Hide initially
+        hotbarElement.style.display = 'none'; // Hide initially
+        escBtnElement.style.display = 'none'; // Hide initially
         initTouchControls();
     } else {
         document.getElementById('mouse-info').style.display = 'block';
@@ -90,11 +94,15 @@ function init() {
             }
         }, false);
     }
-    document.getElementById('game-container').addEventListener('click', () => {
-        if (!isPlaying) {
+    document.getElementById('game-container').addEventListener('click', (event) => {
+        // Only start game on click if not clicking on a UI element
+        if (!isPlaying && event.target.tagName === 'CANVAS') {
             isPlaying = true;
             if (isTouchDevice) {
                 infoElement.style.display = 'none';
+                touchControlsElement.style.display = 'flex';
+                hotbarElement.style.display = 'flex';
+                escBtnElement.style.display = 'block';
             }
         }
     }, false);
@@ -119,9 +127,11 @@ function init() {
 function initTouchControls() {
     const gameContainer = document.getElementById('game-container');
     joystick = document.getElementById('joystick');
-    joystick.style.display = 'block';
     
     let isMovingJoystick = false;
+
+    // Use a flag to track if the touch is for the joystick or camera
+    let isJoystickTouch = false;
 
     gameContainer.addEventListener('touchstart', onTouchStart, false);
     gameContainer.addEventListener('touchmove', onTouchMove, false);
@@ -130,19 +140,43 @@ function initTouchControls() {
     document.getElementById('jump-btn').addEventListener('touchstart', onJumpTouch, false);
     document.getElementById('destroy-btn').addEventListener('touchstart', onMouseDownTouch, false);
     document.getElementById('build-btn').addEventListener('touchstart', onBuildTouch, false);
+    document.getElementById('esc-btn').addEventListener('touchstart', onEscTouch, false);
+
+    hotbarSlots.forEach(slot => {
+        slot.addEventListener('touchstart', () => {
+            selectBlock(slot);
+        });
+    });
+}
+
+function onEscTouch(event) {
+    event.preventDefault(); // Prevent accidental "game start" on touch end
+    isPlaying = false;
+    document.getElementById('info').style.display = 'block';
+    document.getElementById('touch-controls').style.display = 'none';
+    document.getElementById('hotbar').style.display = 'none';
+    document.getElementById('esc-btn').style.display = 'none';
 }
 
 function onTouchStart(event) {
     if (!isPlaying) {
+        const infoElement = document.getElementById('info');
+        const touchControlsElement = document.getElementById('touch-controls');
+        const escBtnElement = document.getElementById('esc-btn');
+        const hotbarElement = document.getElementById('hotbar');
+        
         isPlaying = true;
-        document.getElementById('info').style.display = 'none';
+        infoElement.style.display = 'none';
+        touchControlsElement.style.display = 'flex';
+        hotbarElement.style.display = 'flex';
+        escBtnElement.style.display = 'block';
     }
     
     // Check for joystick touch
     const touch = event.changedTouches[0];
     const rect = joystick.getBoundingClientRect();
-    const joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-    const dist = Math.hypot(touch.clientX - joystickCenter.x, touch.clientY - joystickCenter.y);
+    const joystickContainerRect = document.getElementById('joystick-container').getBoundingClientRect();
+    const dist = Math.hypot(touch.clientX - (joystickContainerRect.left + joystickContainerRect.width / 2), touch.clientY - (joystickContainerRect.top + joystickContainerRect.height / 2));
     
     if (dist < joystickRadius * 2) { // Give a larger touch area for the joystick
         joystickX = touch.clientX;
@@ -214,14 +248,16 @@ function onTouchEnd(event) {
     }
 }
 
-function onJumpTouch() {
+function onJumpTouch(event) {
+    event.preventDefault();
     if (canJump && isPlaying) {
         velocity.y = jumpPower;
         canJump = false;
     }
 }
 
-function onBuildTouch() {
+function onBuildTouch(event) {
+    event.preventDefault();
     if (isPlaying) {
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         const intersects = raycaster.intersectObjects(allBlocks);
@@ -240,7 +276,8 @@ function onBuildTouch() {
     }
 }
 
-function onMouseDownTouch() {
+function onMouseDownTouch(event) {
+    event.preventDefault();
     if (isPlaying) {
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         const intersects = raycaster.intersectObjects(allBlocks);
