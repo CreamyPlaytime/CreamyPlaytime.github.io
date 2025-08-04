@@ -87,17 +87,17 @@ function init() {
             }
         }, false);
     }
-    document.getElementById('game-container').addEventListener('click', (event) => {
-        // Only start game on click if not clicking on a UI element
-        if (!isPlaying && event.target.tagName === 'CANVAS') {
-            isPlaying = true;
-            if (isTouchDevice) {
-                infoElement.style.display = 'none';
-                touchControlsElement.style.display = 'flex';
-                hotbarElement.style.display = 'flex';
-                escBtnElement.style.display = 'block';
-            }
-        }
+    document.getElementById('game-container').addEventListener('touchstart', (event) => {
+        // Only start game on touch if not touching a UI element
+        if (!isPlaying && event.target.tagName === 'CANVAS') {
+            isPlaying = true;
+            if (isTouchDevice) {
+                infoElement.style.display = 'none';
+                touchControlsElement.style.display = 'flex';
+                hotbarElement.style.display = 'flex';
+                escBtnElement.style.display = 'block';
+            }
+        }
     }, false);
     raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, 0, -1), 0, 10);
     const ambientLight = new THREE.AmbientLight(0x404040);
