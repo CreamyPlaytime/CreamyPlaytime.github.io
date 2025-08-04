@@ -1,36 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CreamyPlaytime's Official Site</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="crosshair"></div>
-  <div id="info">
-    <p>Click to Lock Pointer</p>
-    <p>W, A, S, D to move | Space to jump</p>
-    <p>1-0 to select block | Left Click to Destroy | Right Click to Build</p>
-    <button id="save-world-btn">Save World</button>
-    <button id="load-world-btn">Load World</button>
-  </div>
-  <div id="hotbar">
-    <div class="slot active" data-block-id="dirt"></div>
-    <div class="slot" data-block-id="stone"></div>
-    <div class="slot" data-block-id="wood"></div>
-    <div class="slot" data-block-id="grass"></div>
-    <div class="slot" data-block-id="sand"></div>
-    <div class="slot" data-block-id="glass"></div>
-    <div class="slot" data-block-id="brick"></div>
-    <div class="slot" data-block-id="cobblestone"></div>
-    <div class="slot" data-block-id="obsidian"></div>
-    <div class="slot" data-block-id="water"></div>
-  </div>
-
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="420c3dc7-2d8d-4354-81c6-bea378b3aefb"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
-  <script src="game.js"></script>
-</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>CreamyPlaytime's Official Site</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <div id="crosshair"></div>
+    <div id="info">
+      <div id="mouse-info">
+        <p>Click to Lock Pointer</p>
+        <p>W, A, S, D to move | Space to jump</p>
+        <p>1-0 to select block | Left Click to Destroy | Right Click to Build</p>
+      </div>
+      <div id="touch-info" style="display: none;">
+        <p>Tap to Play</p>
+        <p>Joystick to move | Tap buttons to jump, build, or destroy</p>
+        <p>Swipe right side to look | Tap hotbar to select block</p>
+      </div>
+      <button id="save-world-btn">Save World</button>
+      <button id="load-world-btn">Load World</button>
+    </div>
+    <div id="hotbar">
+      <div class="slot active" data-block-id="dirt"></div>
+      <div class="slot" data-block-id="stone"></div>
+      <div class="slot" data-block-id="wood"></div>
+      <div class="slot" data-block-id="grass"></div>
+      <div class="slot" data-block-id="sand"></div>
+      <div class="slot" data-block-id="glass"></div>
+      <div class="slot" data-block-id="brick"></div>
+      <div class="slot" data-block-id="cobblestone"></div>
+      <div class="slot" data-block-id="obsidian"></div>
+      <div class="slot" data-block-id="water"></div>
+    </div>
+    <div id="touch-controls">
+        <div id="joystick-container">
+            <div id="joystick"></div>
+        </div>
+        <div class="right-controls">
+            <div class="touch-btn" id="jump-btn">↑</div>
+            <div class="touch-btn" id="destroy-btn">✗</div>
+            <div class="touch-btn" id="build-btn">+</div>
+        </div>
+    </div>
+  </div>
+
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="420c3dc7-2d8d-4354-81c6-bea378b3aefb"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+  <script src="game.js"></script>
+</body>
 </html>

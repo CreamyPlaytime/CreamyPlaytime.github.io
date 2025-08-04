@@ -1,6 +1,6 @@
 let scene, camera, renderer, controls;
 const blocks = new Map();
-const allBlocks = []; 
+const allBlocks = [];
 const blockSize = 1;
 const playerHeight = 1.8;
 const playerRadius = 0.4;
@@ -34,8 +34,22 @@ let playerArm;
 let heldBlock;
 document.getElementById('save-world-btn').addEventListener('click', saveWorld);
 document.getElementById('load-world-btn').addEventListener('click', loadWorld);
+
+// Touch Control variables
+let isTouchDevice = false;
+let joystick, joystickX, joystickY, touchCameraX, touchCameraY;
+const joystickRadius = 50;
+const sensitivity = 0.002;
+const touchLookZone = { startX: window.innerWidth / 2, startY: 0 };
+let isPlaying = false; // Flag to check if the game is active
+
 init();
 animate();
+
+function isMobile() {
+    return /Mobi|Android/i.test(navigator.userAgent);
+}
+
 function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87ceeb);
@@ -44,21 +58,47 @@ function init() {
     camera.position.y = playerHeight;
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-    controls = new THREE.PointerLockControls(camera, document.body);
+    document.getElementById('game-container').appendChild(renderer.domElement);
+    
+    isTouchDevice = isMobile();
+
     const infoElement = document.getElementById('info');
-    controls.addEventListener('lock', () => {
-        infoElement.style.display = 'none';
-        canJump = true;
-    });
-    controls.addEventListener('unlock', () => {
-        infoElement.style.display = 'block';
-    });
-    document.addEventListener('click', () => {
-        if (!controls.isLocked) {
-            controls.lock();
+    const touchControlsElement = document.getElementById('touch-controls');
+
+    if (isTouchDevice) {
+        infoElement.style.display = 'block'; // Show "Click to Play" equivalent
+        document.getElementById('mouse-info').style.display = 'none';
+        document.getElementById('touch-info').style.display = 'block';
+        touchControlsElement.style.display = 'flex';
+        initTouchControls();
+    } else {
+        document.getElementById('mouse-info').style.display = 'block';
+        document.getElementById('touch-info').style.display = 'none';
+        controls = new THREE.PointerLockControls(camera, document.body);
+        controls.addEventListener('lock', () => {
+            infoElement.style.display = 'none';
+            canJump = true;
+            isPlaying = true;
+        });
+        controls.addEventListener('unlock', () => {
+            infoElement.style.display = 'block';
+            isPlaying = false;
+        });
+        document.addEventListener('click', () => {
+            if (!controls.isLocked) {
+                controls.lock();
+            }
+        }, false);
+    }
+    document.getElementById('game-container').addEventListener('click', () => {
+        if (!isPlaying) {
+            isPlaying = true;
+            if (isTouchDevice) {
+                infoElement.style.display = 'none';
+            }
         }
     }, false);
+
     raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, 0, -1), 0, 10);
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
@@ -67,12 +107,151 @@ function init() {
     scene.add(directionalLight);
     createFloor();
     createPlayerArm();
-    document.addEventListener('keydown', onKeyDown, false);
-    document.addEventListener('keyup', onKeyUp, false);
-    document.addEventListener('mousedown', onMouseDown, false);
+    if (!isTouchDevice) {
+        document.addEventListener('keydown', onKeyDown, false);
+        document.addEventListener('keyup', onKeyUp, false);
+        document.addEventListener('mousedown', onMouseDown, false);
+    }
     window.addEventListener('resize', onWindowResize, false);
     window.addEventListener('contextmenu', (event) => event.preventDefault(), false);
 }
+
+function initTouchControls() {
+    const gameContainer = document.getElementById('game-container');
+    joystick = document.getElementById('joystick');
+    joystick.style.display = 'block';
+    
+    let isMovingJoystick = false;
+
+    gameContainer.addEventListener('touchstart', onTouchStart, false);
+    gameContainer.addEventListener('touchmove', onTouchMove, false);
+    gameContainer.addEventListener('touchend', onTouchEnd, false);
+    
+    document.getElementById('jump-btn').addEventListener('touchstart', onJumpTouch, false);
+    document.getElementById('destroy-btn').addEventListener('touchstart', onMouseDownTouch, false);
+    document.getElementById('build-btn').addEventListener('touchstart', onBuildTouch, false);
+}
+
+function onTouchStart(event) {
+    if (!isPlaying) {
+        isPlaying = true;
+        document.getElementById('info').style.display = 'none';
+    }
+    
+    // Check for joystick touch
+    const touch = event.changedTouches[0];
+    const rect = joystick.getBoundingClientRect();
+    const joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    const dist = Math.hypot(touch.clientX - joystickCenter.x, touch.clientY - joystickCenter.y);
+    
+    if (dist < joystickRadius * 2) { // Give a larger touch area for the joystick
+        joystickX = touch.clientX;
+        joystickY = touch.clientY;
+        isMovingJoystick = true;
+    } else {
+        touchCameraX = touch.clientX;
+        touchCameraY = touch.clientY;
+    }
+}
+
+function onTouchMove(event) {
+    if (!isPlaying) return;
+    for (let i = 0; i < event.changedTouches.length; i++) {
+        const touch = event.changedTouches[i];
+        
+        // Joystick movement
+        if (isMovingJoystick && touch.identifier === event.changedTouches[0].identifier) {
+            const dx = touch.clientX - joystickX;
+            const dy = touch.clientY - joystickY;
+
+            const len = Math.hypot(dx, dy);
+            if (len > joystickRadius) {
+                const angle = Math.atan2(dy, dx);
+                joystick.style.transform = `translate(${Math.cos(angle) * joystickRadius}px, ${Math.sin(angle) * joystickRadius}px)`;
+            } else {
+                joystick.style.transform = `translate(${dx}px, ${dy}px)`;
+            }
+
+            // Set movement flags
+            const ratio = len / joystickRadius;
+            const threshold = 0.2;
+            moveForward = (dy < -threshold * joystickRadius);
+            moveBackward = (dy > threshold * joystickRadius);
+            moveLeft = (dx < -threshold * joystickRadius);
+            moveRight = (dx > threshold * joystickRadius);
+        } else {
+            // Camera look
+            if (touch.clientX > touchLookZone.startX) {
+                const dx = touch.clientX - touchCameraX;
+                const dy = touch.clientY - touchCameraY;
+    
+                const yaw = dx * sensitivity;
+                const pitch = dy * sensitivity;
+    
+                const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+                euler.setFromQuaternion(camera.quaternion);
+    
+                euler.y -= yaw;
+                euler.x -= pitch;
+    
+                const pi_half = Math.PI / 2 - 0.001;
+                euler.x = Math.max(-pi_half, Math.min(pi_half, euler.x));
+    
+                camera.quaternion.setFromEuler(euler);
+    
+                touchCameraX = touch.clientX;
+                touchCameraY = touch.clientY;
+            }
+        }
+    }
+}
+
+function onTouchEnd(event) {
+    if (isMovingJoystick) {
+        joystick.style.transform = 'translate(0, 0)';
+        moveForward = moveBackward = moveLeft = moveRight = false;
+        isMovingJoystick = false;
+    }
+}
+
+function onJumpTouch() {
+    if (canJump && isPlaying) {
+        velocity.y = jumpPower;
+        canJump = false;
+    }
+}
+
+function onBuildTouch() {
+    if (isPlaying) {
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const intersects = raycaster.intersectObjects(allBlocks);
+        if (intersects.length > 0) {
+            const intersection = intersects[0];
+            const normal = intersection.face.normal;
+            const blockPosition = intersection.object.position;
+            const newBlockId = selectedBlockId;
+            const newBlockMaterial = blockTypes[newBlockId];
+            const newBlockGeometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+            const newBlockX = blockPosition.x + normal.x * blockSize;
+            const newBlockY = blockPosition.y + normal.y * blockSize;
+            const newBlockZ = blockPosition.z + normal.z * blockSize;
+            addBlock(newBlockX / blockSize, newBlockY / blockSize, newBlockZ / blockSize, newBlockGeometry, newBlockMaterial, newBlockId);
+        }
+    }
+}
+
+function onMouseDownTouch() {
+    if (isPlaying) {
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const intersects = raycaster.intersectObjects(allBlocks);
+        if (intersects.length > 0) {
+            const intersection = intersects[0];
+            const blockPosition = intersection.object.position;
+            removeBlock(blockPosition.x / blockSize, blockPosition.y / blockSize, blockPosition.z / blockSize);
+        }
+    }
+}
+
 function createPlayerArm() {
     const armGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.6);
     const armMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
@@ -228,28 +407,32 @@ function selectBlock(slotElement) {
         heldBlock.material = blockTypes[selectedBlockId];
     }
 }
+
+hotbarSlots.forEach(slot => {
+    slot.addEventListener('click', () => {
+        selectBlock(slot);
+    });
+});
+
 function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
-    if (controls.isLocked) {
+
+    if (isPlaying) {
         // --- HORIZONTAL MOVEMENT AND COLLISION CHECK ---
         const horizontalMovement = new THREE.Vector3();
         if (moveForward) horizontalMovement.z -= 1;
         if (moveBackward) horizontalMovement.z += 1;
         if (moveLeft) horizontalMovement.x -= 1;
         if (moveRight) horizontalMovement.x += 1;
-
         if (horizontalMovement.length() > 0) {
             horizontalMovement.normalize().multiplyScalar(moveSpeed * delta);
             const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
             const rightVector = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-
             const potentialNewX = camera.position.x + (forwardVector.x * -horizontalMovement.z + rightVector.x * horizontalMovement.x);
             const potentialNewZ = camera.position.z + (forwardVector.z * -horizontalMovement.z + rightVector.z * horizontalMovement.x);
-            
             let canMoveX = true;
             let canMoveZ = true;
-
             // Check for X-axis movement collision
             const playerBoxX = new THREE.Box3().setFromCenterAndSize(
                 new THREE.Vector3(potentialNewX, camera.position.y, camera.position.z),
@@ -263,7 +446,6 @@ function animate() {
                     break;
                 }
             }
-
             // Check for Z-axis movement collision
             const playerBoxZ = new THREE.Box3().setFromCenterAndSize(
                 new THREE.Vector3(camera.position.x, camera.position.y, potentialNewZ),
@@ -277,7 +459,6 @@ function animate() {
                     break;
                 }
             }
-
             if (canMoveX) {
                 camera.position.x = potentialNewX;
             }
@@ -285,24 +466,19 @@ function animate() {
                 camera.position.z = potentialNewZ;
             }
         }
-
         // --- VERTICAL MOVEMENT AND COLLISION CHECK ---
         velocity.y += gravity;
         const futurePositionY = camera.position.y + velocity.y;
-        
         let verticalCollision = false;
         let lowestCollisionY = -Infinity;
         let highestCollisionY = Infinity;
-
         const playerVerticalBox = new THREE.Box3().setFromCenterAndSize(
             new THREE.Vector3(camera.position.x, futurePositionY, camera.position.z),
             new THREE.Vector3(playerRadius * 2, playerHeight, playerRadius * 2)
         );
-
         for (const block of allBlocks) {
             const blockBox = new THREE.Box3().setFromObject(block);
             blockBox.expandByScalar(-0.01);
-
             if (playerVerticalBox.intersectsBox(blockBox)) {
                 verticalCollision = true;
                 if (velocity.y < 0) { // Player is falling
@@ -316,7 +492,6 @@ function animate() {
                 }
             }
         }
-
         if (verticalCollision) {
             if (velocity.y < 0 && lowestCollisionY > -Infinity) { // Landing on a block
                 camera.position.y = lowestCollisionY + playerHeight / 2;
@@ -330,7 +505,6 @@ function animate() {
             camera.position.y = futurePositionY;
             canJump = false;
         }
-
         // Keep player from falling through the initial floor
         if (camera.position.y < playerHeight / 2) {
              camera.position.y = playerHeight / 2;
