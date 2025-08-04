@@ -232,89 +232,97 @@ function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
     if (controls.isLocked) {
-        // Apply gravity to vertical velocity
-        velocity.y += gravity;
-
-        // Calculate horizontal movement
+        // --- HORIZONTAL MOVEMENT AND COLLISION CHECK ---
         const horizontalMovement = new THREE.Vector3();
         if (moveForward) horizontalMovement.z -= 1;
         if (moveBackward) horizontalMovement.z += 1;
         if (moveLeft) horizontalMovement.x -= 1;
         if (moveRight) horizontalMovement.x += 1;
 
-        // Separate horizontal and vertical movement for collision detection
-        const tempPosition = camera.position.clone();
-        
-        // --- HORIZONTAL COLLISION CHECK ---
         if (horizontalMovement.length() > 0) {
             horizontalMovement.normalize().multiplyScalar(moveSpeed * delta);
             const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
             const rightVector = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
 
-            const newX = camera.position.x + (forwardVector.x * -horizontalMovement.z + rightVector.x * horizontalMovement.x);
-            const newZ = camera.position.z + (forwardVector.z * -horizontalMovement.z + rightVector.z * horizontalMovement.x);
-
-            const playerBoxX = new THREE.Box3().setFromCenterAndSize(
-                new THREE.Vector3(newX, camera.position.y, camera.position.z),
-                new THREE.Vector3(playerRadius * 2, playerHeight, playerRadius * 2)
-            );
+            const potentialNewX = camera.position.x + (forwardVector.x * -horizontalMovement.z + rightVector.x * horizontalMovement.x);
+            const potentialNewZ = camera.position.z + (forwardVector.z * -horizontalMovement.z + rightVector.z * horizontalMovement.x);
             
-            const playerBoxZ = new THREE.Box3().setFromCenterAndSize(
-                new THREE.Vector3(camera.position.x, camera.position.y, newZ),
+            let canMoveX = true;
+            let canMoveZ = true;
+
+            // Check for X-axis movement collision
+            const playerBoxX = new THREE.Box3().setFromCenterAndSize(
+                new THREE.Vector3(potentialNewX, camera.position.y, camera.position.z),
                 new THREE.Vector3(playerRadius * 2, playerHeight, playerRadius * 2)
             );
-
-            let blockedX = false;
-            let blockedZ = false;
-
             for (const block of allBlocks) {
                 const blockBox = new THREE.Box3().setFromObject(block);
                 blockBox.expandByScalar(-0.01);
                 if (playerBoxX.intersectsBox(blockBox)) {
-                    blockedX = true;
-                }
-                if (playerBoxZ.intersectsBox(blockBox)) {
-                    blockedZ = true;
+                    canMoveX = false;
+                    break;
                 }
             }
 
-            if (!blockedX) {
-                camera.position.x = newX;
+            // Check for Z-axis movement collision
+            const playerBoxZ = new THREE.Box3().setFromCenterAndSize(
+                new THREE.Vector3(camera.position.x, camera.position.y, potentialNewZ),
+                new THREE.Vector3(playerRadius * 2, playerHeight, playerRadius * 2)
+            );
+            for (const block of allBlocks) {
+                const blockBox = new THREE.Box3().setFromObject(block);
+                blockBox.expandByScalar(-0.01);
+                if (playerBoxZ.intersectsBox(blockBox)) {
+                    canMoveZ = false;
+                    break;
+                }
             }
-            if (!blockedZ) {
-                camera.position.z = newZ;
+
+            if (canMoveX) {
+                camera.position.x = potentialNewX;
+            }
+            if (canMoveZ) {
+                camera.position.z = potentialNewZ;
             }
         }
 
-        // --- VERTICAL COLLISION CHECK ---
+        // --- VERTICAL MOVEMENT AND COLLISION CHECK ---
+        velocity.y += gravity;
         const futurePositionY = camera.position.y + velocity.y;
+        
+        let verticalCollision = false;
+        let lowestCollisionY = -Infinity;
+        let highestCollisionY = Infinity;
+
         const playerVerticalBox = new THREE.Box3().setFromCenterAndSize(
             new THREE.Vector3(camera.position.x, futurePositionY, camera.position.z),
             new THREE.Vector3(playerRadius * 2, playerHeight, playerRadius * 2)
         );
 
-        let verticalCollision = false;
-        let lowestCollisionY = -Infinity;
         for (const block of allBlocks) {
             const blockBox = new THREE.Box3().setFromObject(block);
+            blockBox.expandByScalar(-0.01);
+
             if (playerVerticalBox.intersectsBox(blockBox)) {
                 verticalCollision = true;
-                if (blockBox.max.y > lowestCollisionY) {
-                    lowestCollisionY = blockBox.max.y;
+                if (velocity.y < 0) { // Player is falling
+                    if (blockBox.max.y > lowestCollisionY) {
+                        lowestCollisionY = blockBox.max.y;
+                    }
+                } else if (velocity.y > 0) { // Player is jumping
+                    if (blockBox.min.y < highestCollisionY) {
+                        highestCollisionY = blockBox.min.y;
+                    }
                 }
             }
         }
 
         if (verticalCollision) {
-            if (velocity.y < 0) { // Landing on a block
+            if (velocity.y < 0 && lowestCollisionY > -Infinity) { // Landing on a block
                 camera.position.y = lowestCollisionY + playerHeight / 2;
                 velocity.y = 0;
                 canJump = true;
-            } else if (velocity.y > 0) { // Hitting head on a block
-                const highestCollisionY = allBlocks.reduce((max, block) => {
-                    const blockBox = new THREE.Box3().setFromObject(block);
-                    return playerVerticalBox.intersectsBox(blockBox) ? Math.max(max, blockBox.min.y) : max;
-                }, -Infinity);
+            } else if (velocity.y > 0 && highestCollisionY < Infinity) { // Hitting head on a block
                 camera.position.y = highestCollisionY - playerHeight / 2;
                 velocity.y = 0;
             }
