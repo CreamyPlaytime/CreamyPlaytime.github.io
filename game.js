@@ -144,6 +144,19 @@ function init() {
         }
     });
 
+    // --- FIX: Add touch listeners for Save/Load buttons to prevent conflict ---
+    document.getElementById('save-world-btn').addEventListener('touchstart', (event) => {
+        // Stop the event from bubbling up to the game-container
+        event.stopPropagation(); 
+        saveWorld();
+    });
+
+    document.getElementById('load-world-btn').addEventListener('touchstart', (event) => {
+        // Stop the event from bubbling up to the game-container
+        event.stopPropagation();
+        loadWorld();
+    });
+
     window.addEventListener('resize', onWindowResize, false);
     window.addEventListener('contextmenu', (event) => event.preventDefault(), false);
 }
