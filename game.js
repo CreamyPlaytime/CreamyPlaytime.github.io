@@ -39,7 +39,7 @@ document.getElementById('load-world-btn').addEventListener('click', loadWorld);
 let isTouchDevice = false;
 let joystick, joystickX, joystickY, touchCameraX, touchCameraY;
 const joystickRadius = 50;
-const sensitivity = 0.002;
+const sensitivity = 0.005; // Increased sensitivity for faster camera movement
 const touchLookZone = { startX: window.innerWidth / 2, startY: 0 };
 let isPlaying = false; // Flag to check if the game is active
 
@@ -73,7 +73,7 @@ function init() {
         document.getElementById('touch-info').style.display = 'block';
         touchControlsElement.style.display = 'none'; // Hide initially
         hotbarElement.style.display = 'none'; // Hide initially
-        escBtnElement.style.display = 'none'; // Hide initially
+        escBtnElement.style.display = 'block'; // Show ESC button on touch devices initially, but hide when playing
         initTouchControls();
     } else {
         document.getElementById('mouse-info').style.display = 'block';
@@ -155,7 +155,7 @@ function onEscTouch(event) {
     document.getElementById('info').style.display = 'block';
     document.getElementById('touch-controls').style.display = 'none';
     document.getElementById('hotbar').style.display = 'none';
-    document.getElementById('esc-btn').style.display = 'none';
+    document.getElementById('esc-btn').style.display = 'block';
 }
 
 function onTouchStart(event) {
@@ -435,6 +435,13 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Re-center crosshair
+    const crosshair = document.getElementById('crosshair');
+    if (crosshair) {
+        crosshair.style.left = `${window.innerWidth / 2}px`;
+        crosshair.style.top = `${window.innerHeight / 2}px`;
+    }
 }
 function selectBlock(slotElement) {
     hotbarSlots.forEach(slot => slot.classList.remove('active'));
