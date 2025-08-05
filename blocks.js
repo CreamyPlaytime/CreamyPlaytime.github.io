@@ -52,7 +52,6 @@ const materials = {
     
     // NEW: Sponge materials
     sponge: new THREE.MeshLambertMaterial({ color: 0xffff00 }),
-    wet_sponge: new THREE.MeshLambertMaterial({ color: 0xbdbd00 }),
 
     // --- Textured Materials ---
     dirt: new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(dirtCanvas) }),
@@ -91,7 +90,6 @@ const blockTypes = {
     glowstone: materials.glowstone,
     bedrock: materials.bedrock,
     sponge: materials.sponge,
-    wet_sponge: materials.wet_sponge,
 };
 
 // Maps block IDs to their display canvases for the UI
