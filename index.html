@@ -20,15 +20,12 @@
         <p>Joystick to move | Tap buttons to jump, build, or destroy</p>
         <p>Swipe right side to look | Tap hotbar to select block</p>
       </div>
-      <div>
-        <button id="save-world-btn">Save World</button>
-        <button id="load-world-btn">Load World</button>
-      </div>
-      <h3>Inventory</h3>
-      <div id="inventory-grid">
-        </div>
+      <button id="save-world-btn">Save World</button>
+      <button id="load-world-btn">Load World</button>
     </div>
+    
     <button id="esc-btn" style="display:none;">ESC</button>
+
     <div id="touch-controls">
         <div id="joystick-container">
             <div id="joystick"></div>
@@ -40,22 +37,22 @@
         </div>
     </div>
     <div id="hotbar">
-      <div class="slot active" data-block-id="grass_dirt" draggable="true"></div>
-      <div class="slot" data-block-id="dirt" draggable="true"></div>
-      <div class="slot" data-block-id="stone" draggable="true"></div>
-      <div class="slot" data-block-id="cobblestone" draggable="true"></div>
-      <div class="slot" data-block-id="planks" draggable="true"></div>
-      <div class="slot" data-block-id="log" draggable="true"></div>
-      <div class="slot" data-block-id="sand" draggable="true"></div>
-      <div class="slot" data-block-id="glass" draggable="true"></div>
-      <div class="slot" data-block-id="brick" draggable="true"></div>
-      <div class="slot" data-block-id="water" draggable="true"></div>
+      <div class="slot active" data-block-id="dirt"></div>
+      <div class="slot" data-block-id="stone"></div>
+      <div class="slot" data-block-id="wood"></div>
+      <div class="slot" data-block-id="grass"></div>
+      <div class="slot" data-block-id="sand"></div>
+      <div class="slot" data-block-id="glass"></div>
+      <div class="slot" data-block-id="brick"></div>
+      <div class="slot" data-block-id="cobblestone"></div>
+      <div class="slot" data-block-id="obsidian"></div>
+      <div class="slot" data-block-id="water"></div>
     </div>
   </div>
+
   <script defer src="https://cloud.umami.is/script.js" data-website-id="420c3dc7-2d8d-4354-81c6-bea378b3aefb"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
-  <script src="blocks.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
